@@ -1,0 +1,47 @@
+
+services:
+  app:
+    build: .
+    container_name: homework_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:80"
+    environment:
+      DB_HOST: db
+      DB_USER: appuser
+      DB_PASSWORD: apppassword
+      DB_NAME: homeworkdb
+      APP_VERSION: "v1"
+    networks:
+      - homework_net
+
+  db:
+    image: mysql:8.0
+    container_name: homework_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: homeworkdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - homework_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - homework_net
+
+volumes:
+  homework_db_data:
+
+networks:
+  homework_net:
+    name: homework_compose_network
+    driver: bridge

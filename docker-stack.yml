@@ -1,0 +1,53 @@
+
+services:
+  app:
+    image: homework-app:1.0
+    ports:
+      - "8081:80"
+    environment:
+      DB_HOST: db
+      DB_USER: appuser
+      DB_PASSWORD: apppassword
+      DB_NAME: homeworkdb
+      APP_VERSION: "v1"
+    networks:
+      - homework_net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+        reservations:
+          memory: 64M
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: homeworkdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - homework_db_data:/var/lib/mysql
+    networks:
+      - homework_net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 768M
+        reservations:
+          memory: 256M
+
+volumes:
+  homework_db_data:
+
+networks:
+  homework_net:
+    driver: overlay
